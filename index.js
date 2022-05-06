@@ -15,18 +15,21 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 console.log("DB connected");
 
-async function run(){
-    try{
+async function run() {
+    try {
         await client.connect();
         const bikeCollection = client.db("royalBikes").collection("bike");
 
-        query = {};
-        const cursor = bikeCollection.find(query);
-        const bikes = await cursor.toArray();
-        console.log(bikes);
+        app.get('/inventory', async (req, res) => {
+            query = {};
+            const cursor = bikeCollection.find(query);
+            const bikes = await cursor.toArray();
+            // console.log(bikes);
+            res.send(bikes);
+        })
 
     }
-    finally{
+    finally {
 
     }
 }
