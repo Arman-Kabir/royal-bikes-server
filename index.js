@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -20,12 +20,39 @@ async function run() {
         await client.connect();
         const bikeCollection = client.db("royalBikes").collection("bike");
 
+        // get bikes
         app.get('/inventory', async (req, res) => {
-            query = {};
+            const query = {};
             const cursor = bikeCollection.find(query);
             const bikes = await cursor.toArray();
             // console.log(bikes);
             res.send(bikes);
+        });
+        // get a single bike
+        app.get('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const bike = await bikeCollection.findOne(query);
+            // console.log(bike)
+            res.send(bike);
+        });
+
+        // update bike quantity
+        app.put('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedQuantiy = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+
+            const updatedDoc = {
+                $set:{
+                    quantity: updatedQuantiy.newQuantity
+                }
+            };
+
+            const result = await bikeCollection.updateOne(filter,updatedDoc,options);
+            console.log(result);
+            res.send(result);
         })
 
     }
