@@ -38,6 +38,14 @@ async function run() {
             res.send(bike);
         });
 
+        // add an inventory item
+        app.post('/inventory',async(req,res)=>{
+            const newService = req.body;
+            console.log(newService);
+            const result = await bikeCollection.insertOne(newService);
+            res.send(result);
+        })
+
         // Delete an inventory item
         app.delete('/inventory/:id', async (req, res) => {
             const id = req.params.id;
