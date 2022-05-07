@@ -28,6 +28,7 @@ async function run() {
             // console.log(bikes);
             res.send(bikes);
         });
+
         // get a single bike
         app.get('/inventory/:id', async (req, res) => {
             const id = req.params.id;
@@ -35,6 +36,15 @@ async function run() {
             const bike = await bikeCollection.findOne(query);
             // console.log(bike)
             res.send(bike);
+        });
+
+        // Delete an inventory item
+        app.delete('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = { _id: ObjectId(id) };
+            const result = await bikeCollection.deleteOne(query);
+            res.send(result);
         });
 
         // update bike quantity
@@ -45,15 +55,17 @@ async function run() {
             const options = { upsert: true };
 
             const updatedDoc = {
-                $set:{
+                $set: {
                     quantity: updatedQuantiy.newQuantity
                 }
             };
 
-            const result = await bikeCollection.updateOne(filter,updatedDoc,options);
+            const result = await bikeCollection.updateOne(filter, updatedDoc, options);
             console.log(result);
             res.send(result);
         })
+
+
 
     }
     finally {
