@@ -23,10 +23,10 @@ function verifyJWT(req, res, next) {
         if (err) {
             return res.status(403).send({ message: 'Forbidden Access' });
         }
-        console.log('decoded', decoded);
+        // console.log('decoded', decoded);
         req.decoded = decoded;
     });
-    console.log('inside verifyJWT ', authHeader);
+    // console.log('inside verifyJWT ', authHeader);
     next();
 }
 
@@ -57,28 +57,11 @@ async function run() {
         // get bikes api
         app.get('/inventory', async (req, res) => {
 
-            // const decodedEmail = req.decoded.email;
-            // auth header
-            // const authHeader = req.headers.authorization;
-            // console.log(authHeader);
-
-            // const email = req.query.email;
             const item = req.query.item;
-            console.log(item);
+            // console.log(item);
             let query = {};
             let bikes;
-            // --------------
-            // if(email === decodedEmail){
-
-            // }
-            // else{
-            //     res.status(403).send({message: 'forbidden access'})
-            // }
-
-            // -----------
-            // if (email) {
-            //     query = { email: email }
-            // }
+          
 
             if (item) {
                 const cursor = bikeCollection.find(query);
@@ -111,7 +94,7 @@ async function run() {
         // Delete an inventory item
         app.delete('/inventory/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
+            // console.log(id);
             const query = { _id: ObjectId(id) };
             const result = await bikeCollection.deleteOne(query);
             res.send(result);
@@ -131,38 +114,42 @@ async function run() {
             };
 
             const result = await bikeCollection.updateOne(filter, updatedDoc, options);
-            console.log(result);
+            // console.log(result);
             res.send(result);
         })
 
         // get new inventory *my item api
-        app.get('/inventoryitem', async (req, res) => {
+        app.get('/inventoryitem', verifyJWT, async (req, res) => {
+            const decodedEmail = req.decoded.email;
+            // auth header
+            // const authHeader = req.headers.authorization;
+            // console.log(authHeader);
             const email = req.query.email;
-            console.log(email);
-            let query; 
-            let myitem;
-            if(email){
-                query = { email: email };
-            }else{
-                query={};
+            // console.log(email);
+
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const cursor = myitemCollection.find(query);
+                const myitem = await cursor.toArray();
+                res.send(myitem);
             }
-            const cursor = myitemCollection.find(query);
-            myitem = await cursor.toArray();
-            res.send(myitem);
+            else{
+                res.status(403).send({message:'forbidden access'})
+            }
         })
 
         // add new inventory *my item api
         app.post('/inventoryitem', async (req, res) => {
             const newItem = req.body;
-            console.log(newItem);
+            // console.log(newItem);
             const result = await myitemCollection.insertOne(newItem);
             res.send(result);
         })
 
-         // Delete an inventory item
-         app.delete('/inventoryitem/:id', async (req, res) => {
+        // Delete an inventory item
+        app.delete('/inventoryitem/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
+            // console.log(id);
             const query = { _id: ObjectId(id) };
             const result = await myitemCollection.deleteOne(query);
             res.send(result);
@@ -172,17 +159,28 @@ async function run() {
         app.get('/inventoryitem/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const bike = await bikeCollection.findOne(query);
+            const bike = await myitemCollection.findOne(query);
             // console.log(bike)
             res.send(bike);
         });
 
-        
+        // update bike quantity my item ****
+        app.put('/inventoryitem/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedQuantiy = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
 
-        
+            const updatedDoc = {
+                $set: {
+                    quantity: updatedQuantiy.newQuantity
+                }
+            };
 
-
-
+            const result = await myitemCollection.updateOne(filter, updatedDoc, options);
+            // console.log(result);
+            res.send(result);
+        })
     }
     finally {
 
