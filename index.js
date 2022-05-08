@@ -22,9 +22,24 @@ async function run() {
 
         // get bikes
         app.get('/inventory', async (req, res) => {
-            const query = {};
-            const cursor = bikeCollection.find(query);
-            const bikes = await cursor.toArray();
+            const email = req.query.email;
+            const item = req.query.item;
+             console.log(email,item);
+            let query = {};
+            let bikes;
+            if(email){
+                query = {email:email}
+            }
+            
+            
+            
+            if(item){
+                const cursor = bikeCollection.find(query);
+                 bikes = await cursor.limit(6).toArray();
+            }else{
+                const cursor = bikeCollection.find(query);
+                 bikes = await cursor.toArray();
+            }
             // console.log(bikes);
             res.send(bikes);
         });
